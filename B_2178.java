@@ -1,51 +1,56 @@
-package test_181127;
+package test_190325;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Scanner;
 
-class Pos {
-	int x, y;
+class Pos{
 	
-	public Pos(int x, int y) {
+	int x, y, cnt;
+	
+	public Pos(int x, int y, int cnt) {
 		this.x=x;
 		this.y=y;
+		this.cnt=cnt;
 	}
 }
 
-//미로가 주어질 때, 출발지에서 도착지까지 이동하는 최소 칸수 구하기
+//NxM 크기의 미로가 입력으로 주어질 때, 출발부터 도착지까지 반드시 거쳐야 하는 칸의 수 최소값 구하기
 public class B_2178 {
 
-	static int r;
-	static int c;
-	static char [][] map;
-	//각 위치마다 최소칸수 저장할 배열
-	static int [][] dp;
-	static boolean [][] visited;
+	static int n;
+	static int m;
+	static int [][] map;
+	static boolean [][] v;
 	//상하좌우 이동 가능
-	static int [][] move = {{1,0},{-1,0},{0,1},{0,-1}};
+	static int [] dx = {1,-1,0,0};
+	static int [] dy = {0,0,1,-1};
 	
-	public static void bfs(int x, int y) {
+	public static void bfs(int x, int y, int cnt) {
 		Queue<Pos> q = new LinkedList<>();
-		q.add(new Pos(x, y));
-		
+		q.add(new Pos(x, y, cnt));
+	
 		while(!q.isEmpty()) {
 			Pos p = q.poll();
 			
+			//도착점이면(가장 빨리 도착하는 경우)
+			if(p.x==n-1&&p.y==m-1) {
+				System.out.println(p.cnt);
+				break;
+			}
+			
 			for(int i=0;i<4;i++) {
-				int nextx = p.x+move[i][0];
-				int nexty = p.y+move[i][1];
+				int nx = p.x+dx[i];
+				int ny = p.y+dy[i];
 				
-				//다음 지점이 영역 밖이면
-				if(nextx<0||nexty<0||nextx>=r||nexty>=c) {
-					continue;
-				}
-				//다음 지점이 방문하지 않은 1이면
-				if(map[nextx][nexty]=='1'&&!visited[nextx][nexty]) {
-					visited[nextx][nexty]=true;
-					q.add(new Pos(nextx, nexty));
-					//현재 위치 + 1칸
-					dp[nextx][nexty]=dp[p.x][p.y]+1;
+				//다음 지점 = 영역 밖
+				if(nx<0||ny<0||nx>=n||ny>=m) continue;
+				
+				//다음 지점 = 이동 가능 and 미방문
+				if(map[nx][ny]==1&&!v[nx][ny]) {
+					v[nx][ny]=true;
+					q.add(new Pos(nx, ny, p.cnt+1));
 				}
 			}
 		}
@@ -54,26 +59,23 @@ public class B_2178 {
 	public static void main(String[] args) {
 
 		Scanner sc = new Scanner(System.in);
-		r = sc.nextInt();
-		c = sc.nextInt();
+		n = sc.nextInt();
+		m = sc.nextInt();
 		
-		if(2<=r&&r<=100&&2<=c&&c<=100) {
-			map = new char [r][c];
-			visited = new boolean [r][c];
-			dp = new int [r][c];
+		if(n<=100&&m<=100) {
+			map = new int[n][m];
+			v = new boolean[n][m];
 			
-			for(int i=0;i<map.length;i++) {
+			//지도 입력
+			for(int i=0;i<n;i++) {
 				String str = sc.next();
 				for(int j=0;j<str.length();j++) {
-					map[i][j]=str.charAt(j);
+					map[i][j]=str.charAt(j)-'0';
 				}
 			}
-			//탐색 시작(시작 지점 초기화)
-			visited[0][0]=true;
-			dp[0][0]=1;
-			bfs(0,0);
-			//도착 지점 + 1칸
-			System.out.println(dp[r-1][c-1]);
-		}
+			
+			//BFS 탐색
+			bfs(0,0,1);
+		}	
 	}
 }
